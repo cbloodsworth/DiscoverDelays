@@ -24,7 +24,8 @@ int main() {
     short int month, delay;
     bool isMonth = true;
     int count = 0;
-    int rows = 100; // actual: 463128;
+    int index = 0;
+    int rows = 93;
     pair<short int, short int> flights[rows];
 
     while(getline(inputFile, line)) {
@@ -40,9 +41,10 @@ int main() {
         if (temp != "NA") {
             delay = stoi(temp);
             pair<short int, short int> newPair = make_pair(delay, month);
-            flights[count] = newPair;
-            count++;
+            flights[index] = newPair;
+            index++;
         }
+        count++;
     }
 
     cout << "Finished reading in flight data..." << endl;
@@ -55,15 +57,15 @@ int main() {
     auto start = high_resolution_clock::now();
     mergeSort(flights, 0, rows);
     auto stop = high_resolution_clock::now();
-    auto duration = duration_cast<seconds>(stop - start);
-    cout << "Using merge sort took " << duration.count() << " seconds!" << endl;
+    auto duration = duration_cast<microseconds>(stop - start);
+    cout << "Using merge sort took " << duration.count() << " microseconds!" << endl;
 
     cout << "Performing quick sort..." << endl;
     start = high_resolution_clock::now();
     quickSort(temp, 0, rows);
     stop = high_resolution_clock::now();
-    duration = duration_cast<seconds>(stop - start);
-    cout << "Using quick sort took " << duration.count() << " seconds!" << endl;
+    duration = duration_cast<microseconds>(stop - start);
+    cout << "Using quick sort took " << duration.count() << " microseconds!" << endl;
 
     int months[13];
     for (int i = 1; i < 13; i++)
@@ -73,7 +75,7 @@ int main() {
         months[flights[i].second]++;
     }
 
-    int best = 0.25 * rows;
+    int best = 0;
     int bestMonth = 0;
     for (int i = 1; i < 13; i++) {
         if (months[i] > best) {
@@ -90,7 +92,7 @@ int main() {
         months[flights[i].second]++;
     }
 
-    int worst = 0.25 * rows;
+    int worst = 0;
     int worstMonth = 0;
     for (int i = 1; i < 13; i++) {
         if (months[i] > worst) {
