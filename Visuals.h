@@ -4,6 +4,9 @@
 #include <unordered_map>
 #include <string>
 #include <queue>
+#include <random>
+
+/* ABANDON ALL HOPE, YE WHO ENTER */
 
 using namespace std;
 
@@ -39,10 +42,24 @@ void monthSwap(string& n) {
 
 class DD_Program {
     sf::Sprite visualspr; // this sprite is for use on non-clickable objects
-    sf::Sprite clkspr1;   // these next sprites are for clickable objects
-    sf::Sprite clkspr2;
-    sf::Sprite clkspr3;
-    sf::Sprite clkspr4;
+    sf::Sprite clkspr1;   // this sprite is for clickable objects
+    TM ddtm;
+
+    //helper map
+    map<int, string> months = { {0, "but-m-jan-1"},
+                                {1, "but-m-feb-1"},
+                                {2, "but-m-mar-1"},
+                                {3, "but-m-apr-1"},
+                                {4, "but-m-may-1"},
+                                {5, "but-m-jun-1"},
+                                {6, "but-m-jul-1"},
+                                {7, "but-m-aug-1"},
+                                {8, "but-m-sep-1"},
+                                {9, "but-m-oct-1"},
+                                {10, "but-m-nov-1"},
+                                {11, "but-m-dec-1"},
+    };
+    
 
     struct Button {
         TM tm;
@@ -79,17 +96,27 @@ class DD_Program {
 
     sf::RenderWindow* window = new sf::RenderWindow(sf::VideoMode(1024, 768), "DiscoverDelays");
 
+    /* DATA SOURCE ARRAYS */
+    int numDelaysByMonth[12];
+
+    /* END DATA SOURCE ARRAYS */
+
+
+
 public:
     // Create any buttons you want here, and...
     Button del_by_day;
     Button del_by_month;
     Button var_stats;
-    Button welc_banner;
 
     Button jan; Button feb; Button mar; Button apr; Button may; Button jun;
     Button jul; Button aug; Button sep; Button oct; Button nov; Button dec;
 
     Button back;
+
+    Button welc_banner;
+    Button gdata;
+    Button gbackground;
     
     
     //...initialize them here. String is the filename, then xpos and ypos. put true if you want them to be clickable, false if not.
@@ -101,14 +128,23 @@ public:
                     feb("but-m-feb-0", 36, 72+10, true),
                     mar("but-m-mar-0", 36, 108+20, true),
                     apr("but-m-apr-0", 36, 144+30, true),
-                    jun("but-m-jun-0", 36, 180+40, true),
-                    jul("but-m-jul-0", 36, 216+50, true),
-                    aug("but-m-aug-0", 36, 252+60, true),
-                    sep("but-m-sep-0", 36, 288+70, true),
-                    oct("but-m-oct-0", 36, 324+80, true),
-                    nov("but-m-nov-0", 36, 360+90, true),
-                    dec("but-m-dec-0", 36, 396+100, true),
-                    back("but-back", 36, 700, true) {}
+                    may("but-m-may-0", 36, 180+40, true),
+                    jun("but-m-jun-0", 36, 216+50, true),
+                    jul("but-m-jul-0", 36, 252+60, true),
+                    aug("but-m-aug-0", 36, 288+70, true),
+                    sep("but-m-sep-0", 36, 324+80, true),
+                    oct("but-m-oct-0", 36, 360+90, true),
+                    nov("but-m-nov-0", 36, 396+100, true),
+                    dec("but-m-dec-0", 36, 432+110, true),
+                    back("but-back", 36, 700, true),
+                    gdata("misc-graphdata", 0, 0),
+                    gbackground("misc-graphbg", 175, 82) {
+        //ONLY FOR DEBUGGING
+        for (int i = 0; i < 12; i++) {
+            numDelaysByMonth[i] = rand()%3298;
+        }
+        
+    }
     
     //pass in a month to flip in the array and it will flip it
     void updateActiveMonths() {
@@ -147,7 +183,6 @@ public:
     }
 
 	void openProgram() {    
-
         while (window->isOpen())
         {  
             sf::Event event;
@@ -171,40 +206,39 @@ public:
                 switch (event.type) {
                 case (sf::Event::MouseButtonPressed):
                 {
-                    // TODO: if rectangle contains where mouse is, grrab that button
                     for (auto& b : activeButtons) {
+                        // If the rectangle formed from b's sprite contains the mouse
                         if (sf::Rect<int>(b->pos, b->size).contains(sf::Mouse::getPosition(*window))) {
                             if (not b->clickable)
                                 continue;
                             b->click();
                             if (screen_num == 0)
                                 turnOffButtons();
-                            else if (screen_num == 2)
+                            else if (screen_num == 1)
                                 exclusiveButtons(*b);
 
                             updateActiveMonths();
-                            for (bool x : activeMonths)
-                                cout << x << ",";
-
-                            cout << endl;
                         }
                     }
-                } break;
+                } 
+                break;
 
                 case (sf::Event::Closed): 
                 {
                     window->close();
-                } break;
+                } 
+                break;
 
                 }
 
                 
             }
 
-            
-            
-
             displayButtons();
+
+            if (screen_num == 2)
+                displayDBMGraph();
+            
             window->display();
             
         }
@@ -267,6 +301,7 @@ public:
         activeButtons.push_back(&nov);
         activeButtons.push_back(&dec);
         activeButtons.push_back(&back);
+        activeButtons.push_back(&gbackground);
 
         screen_num = 2;
     }
@@ -275,6 +310,47 @@ public:
         activeButtons.push_back(&back);
 
         screen_num = 3;
+    }
+
+    void displayDBMGraph() {
+        int graphsToShow = 0;
+        for (bool x : activeMonths)
+            if (x)
+                graphsToShow++;
+
+        int graphMax = -1;
+
+        for (int x : numDelaysByMonth)
+            if (x > graphMax)
+                graphMax = x;
+        
+        int scalefactor = 1;
+        if (graphMax >= 10) {
+            while (graphMax > 10 * 10) {
+                graphMax /= 10;
+                scalefactor *= 10;
+            }
+
+            scalefactor *= (graphMax / 10);
+        }
+        int counter = 0;
+        for (int i = 0; i < 12; i++) {
+            sf::Sprite spr;
+            sf::Sprite month;
+            spr.setTexture(ddtm.GetTexture("misc-graphdata"));
+            
+            //if the month is active (box is checked)
+            if (activeMonths[i]) {
+                month.setTexture(ddtm.GetTexture(months[i]));
+                month.setPosition(sf::Vector2f(550 - 18 * graphsToShow + (counter * 40), 400 + 36));
+                window->draw(month);
+                for (int j = 0; j < 4 * numDelaysByMonth[i] / scalefactor; j++) {
+                    spr.setPosition(sf::Vector2f(550 - 18*graphsToShow + (counter * 40), 400 - 6 * j));
+                    window->draw(spr);
+                }
+                counter++;
+            } 
+        }
     }
 };
 
