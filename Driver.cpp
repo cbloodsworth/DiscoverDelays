@@ -25,7 +25,7 @@ int main() {
     bool isMonth = true;
     int count = 0;
     int index = 0;
-    int rows = 93;
+    int rows = 150000;
     pair<short int, short int> flights[rows];
 
     while(getline(inputFile, line)) {
