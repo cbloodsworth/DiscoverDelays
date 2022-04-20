@@ -1,11 +1,11 @@
 #pragma once
 
-int partition(int* arr, int lo, int hi) {
+int partition(pair<short int, short int> arr[], int lo, int hi) {
     int left = lo;
-    int pivot = arr[lo];
+    int pivot = arr[lo].first;
 
     for (int i = lo + 1; i < hi; i++) {
-        if (arr[i] < pivot) {
+        if (arr[i].first < pivot) {
             swap(arr[i], arr[left]);
             left++;
         }
@@ -15,7 +15,7 @@ int partition(int* arr, int lo, int hi) {
     return left;
 }
 
-void quickSort(int* arr, int lo, int hi) {
+void quickSort(pair<short int, short int> arr[], int lo, int hi) {
     if (lo < hi) {
         int pivot = partition(arr, lo, hi);
         quickSort(arr, lo, pivot);
