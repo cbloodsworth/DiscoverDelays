@@ -26,7 +26,6 @@ struct TM {
     }
 };
 
-
 static int screen_num = 0;
 
 void monthSwap(string& n) {
@@ -44,6 +43,10 @@ class DD_Program {
     sf::Sprite visualspr; // this sprite is for use on non-clickable objects
     sf::Sprite clkspr1;   // this sprite is for clickable objects
     TM ddtm;
+    sf::Text data;
+    sf::Font font;
+
+    DataSet& ds;
 
     //helper map
     map<int, string> months = { {0, "but-m-jan-1"},
@@ -58,6 +61,19 @@ class DD_Program {
                                 {9, "but-m-oct-1"},
                                 {10, "but-m-nov-1"},
                                 {11, "but-m-dec-1"},
+    };
+    map<int, string> month_names = { {0, "January"},
+                                     {1, "February"},
+                                     {2, "March"},
+                                     {3, "April"},
+                                     {4, "May"},
+                                     {5, "June"},
+                                     {6, "July"},
+                                     {7, "August"},
+                                     {8, "September"},
+                                     {9, "October"},
+                                     {10, "November"},
+                                     {11, "December"},
     };
     
 
@@ -96,11 +112,6 @@ class DD_Program {
 
     sf::RenderWindow* window = new sf::RenderWindow(sf::VideoMode(1024, 768), "DiscoverDelays");
 
-    /* DATA SOURCE ARRAYS */
-    int numDelaysByMonth[12];
-
-    /* END DATA SOURCE ARRAYS */
-
 
 
 public:
@@ -120,31 +131,27 @@ public:
     
     
     //...initialize them here. String is the filename, then xpos and ypos. put true if you want them to be clickable, false if not.
-    DD_Program() :  del_by_day("but-dbd", 150, 350, true),
-                    del_by_month("but-dbm", 618, 350, true),
-                    var_stats("but-varstts", 384, 550, true),
-                    welc_banner("misc-welcbanner", 0, 50),
-                    jan("but-m-jan-0", 36, 36, true),
-                    feb("but-m-feb-0", 36, 72+10, true),
-                    mar("but-m-mar-0", 36, 108+20, true),
-                    apr("but-m-apr-0", 36, 144+30, true),
-                    may("but-m-may-0", 36, 180+40, true),
-                    jun("but-m-jun-0", 36, 216+50, true),
-                    jul("but-m-jul-0", 36, 252+60, true),
-                    aug("but-m-aug-0", 36, 288+70, true),
-                    sep("but-m-sep-0", 36, 324+80, true),
-                    oct("but-m-oct-0", 36, 360+90, true),
-                    nov("but-m-nov-0", 36, 396+100, true),
-                    dec("but-m-dec-0", 36, 432+110, true),
-                    back("but-back", 36, 700, true),
-                    gdata("misc-graphdata", 0, 0),
-                    gbackground("misc-graphbg", 175, 82) {
-        //ONLY FOR DEBUGGING
-        for (int i = 0; i < 12; i++) {
-            numDelaysByMonth[i] = rand()%3298;
-        }
+    DD_Program(DataSet& d) : ds(d),
+        del_by_day("but-dbd", 150, 350, true),
+        del_by_month("but-dbm", 618, 350, true),
+        var_stats("but-varstts", 384, 550, true),
+        welc_banner("misc-welcbanner", 0, 50),
+        jan("but-m-jan-0", 36, 36, true),
+        feb("but-m-feb-0", 36, 72 + 10, true),
+        mar("but-m-mar-0", 36, 108 + 20, true),
+        apr("but-m-apr-0", 36, 144 + 30, true),
+        may("but-m-may-0", 36, 180 + 40, true),
+        jun("but-m-jun-0", 36, 216 + 50, true),
+        jul("but-m-jul-0", 36, 252 + 60, true),
+        aug("but-m-aug-0", 36, 288 + 70, true),
+        sep("but-m-sep-0", 36, 324 + 80, true),
+        oct("but-m-oct-0", 36, 360 + 90, true),
+        nov("but-m-nov-0", 36, 396 + 100, true),
+        dec("but-m-dec-0", 36, 432 + 110, true),
+        back("but-back", 36, 700, true),
+        gdata("misc-graphdata", 0, 0),
+        gbackground("misc-graphbg", 175, 82) {}
         
-    }
     
     //pass in a month to flip in the array and it will flip it
     void updateActiveMonths() {
@@ -183,6 +190,10 @@ public:
     }
 
 	void openProgram() {    
+        font.loadFromFile("Fonts/Centaur.ttf");
+        data.setFont(font);
+        data.setOutlineColor(sf::Color(0,0,0, 255));
+        data.setOutlineThickness(1.5);
         while (window->isOpen())
         {  
             sf::Event event;
@@ -320,7 +331,7 @@ public:
 
         int graphMax = -1;
 
-        for (int x : numDelaysByMonth)
+        for (int x : ds.numDelaysByMonth)
             if (x > graphMax)
                 graphMax = x;
         
@@ -334,20 +345,37 @@ public:
             scalefactor *= (graphMax / 10);
         }
         int counter = 0;
+        bool highlighted = false;
         for (int i = 0; i < 12; i++) {
             sf::Sprite spr;
             sf::Sprite month;
-            spr.setTexture(ddtm.GetTexture("misc-graphdata"));
+           
             
             //if the month is active (box is checked)
             if (activeMonths[i]) {
+#define GRAPH_X 550 - 18 * graphsToShow + (counter * 40)
                 month.setTexture(ddtm.GetTexture(months[i]));
-                month.setPosition(sf::Vector2f(550 - 18 * graphsToShow + (counter * 40), 400 + 36));
+                month.setPosition(sf::Vector2f(GRAPH_X, 400 + 36));
                 window->draw(month);
-                for (int j = 0; j < 4 * numDelaysByMonth[i] / scalefactor; j++) {
-                    spr.setPosition(sf::Vector2f(550 - 18*graphsToShow + (counter * 40), 400 - 6 * j));
+                for (int j = 0; j <= 4 * ds.numDelaysByMonth[i] / scalefactor; j++) {
+                    // if the mouse is on a column. that's all this line is. seems scary, put please do not fret. that's all this line is.
+                    if (sf::Rect<int>(sf::Vector2i(GRAPH_X, 406 - 24 * ds.numDelaysByMonth[i] / scalefactor), sf::Vector2i(36, 72 + 24 * ds.numDelaysByMonth[i] / scalefactor)).contains(sf::Mouse::getPosition(*window))) { // DEAR GOD
+                        spr.setTexture(ddtm.GetTexture("misc-graphdata-h"));
+                        highlighted = true;
+                    }
+                    else {
+                        spr.setTexture(ddtm.GetTexture("misc-graphdata"));
+                        highlighted = false;
+                    }
+                    spr.setPosition(sf::Vector2f(GRAPH_X, 400 - 6 * j));
                     window->draw(spr);
                 }
+                if (highlighted) {
+                    data.setPosition(sf::Vector2f(180, 400 + 128));
+                    data.setString("Number of " + month_names[i] + " delays: " + to_string(ds.numDelaysByMonth[i]));
+                    window->draw(data);
+                }
+
                 counter++;
             } 
         }
