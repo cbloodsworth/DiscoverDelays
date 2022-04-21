@@ -62,15 +62,6 @@ DataSet loadDiscoverDelays() {
         months[flights[i].second - 1]++;
     }
 
-    int best = 0;
-    int bestMonth = 0;
-    for (int i = 0; i < 12; i++) {
-        if (months[i] > best) {
-            best = months[i];
-            bestMonth = i;
-        }
-    }
-    ds.bestMonth = bestMonth;
 
     for (int i = 0; i < 12; i++)
         months[i] = 0;
@@ -89,10 +80,17 @@ DataSet loadDiscoverDelays() {
     }
     ds.worstMonth = worstMonth;
 
+    int min = INT_MAX;
+    int minMonth = 0;
     for (int i = 0; i < 12; i++) {
         ds.numDelaysByMonth[i] = months[i];
-        
+        if (min > months[i]) {
+            minMonth = i;
+            min = months[i];
+        }
     }
+
+    ds.bestMonth = minMonth;
 
     int numDelays[12] = { 0 };
 

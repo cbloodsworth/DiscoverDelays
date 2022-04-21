@@ -5,6 +5,7 @@
 #include <string>
 #include <queue>
 #include <random>
+#include <thread>
 
 /* ABANDON ALL HOPE, YE WHO ENTER */
 
@@ -26,7 +27,9 @@ struct TM {
     }
 };
 
-static int screen_num = 0;
+static int screen_num = -1;
+
+bool badDelayFlag = false;
 
 void monthSwap(string& n) {
     if (n[n.length() - 1] == '0') {
@@ -46,7 +49,7 @@ class DD_Program {
     sf::Text data;
     sf::Font font;
 
-    DataSet& ds;
+    DataSet ds;
 
     //helper map
     map<int, string> months = { {0, "but-m-jan-1"},
@@ -110,6 +113,7 @@ class DD_Program {
     vector<Button*> activeButtons;
     bool activeMonths[12];
 
+
     sf::RenderWindow* window = new sf::RenderWindow(sf::VideoMode(1024, 768), "DiscoverDelays");
 
 
@@ -123,7 +127,7 @@ public:
     Button jan; Button feb; Button mar; Button apr; Button may; Button jun;
     Button jul; Button aug; Button sep; Button oct; Button nov; Button dec;
 
-    Button back;
+    Button back; Button baddel;
 
     Button welc_banner;
     Button gdata;
@@ -131,10 +135,11 @@ public:
     
     
     //...initialize them here. String is the filename, then xpos and ypos. put true if you want them to be clickable, false if not.
-    DD_Program(DataSet& d) : ds(d),
+    DD_Program() :
+        baddel("but-baddel-0",36, 660, true),
         del_by_day("but-dbd", 150, 350, true),
         del_by_month("but-dbm", 618, 350, true),
-        var_stats("but-varstts", 384, 550, true),
+        var_stats("but-varstts", 150, 350, true),
         welc_banner("misc-welcbanner", 0, 50),
         jan("but-m-jan-0", 36, 36, true),
         feb("but-m-feb-0", 36, 72 + 10, true),
@@ -192,8 +197,9 @@ public:
 	void openProgram() {    
         font.loadFromFile("Fonts/Centaur.ttf");
         data.setFont(font);
-        data.setOutlineColor(sf::Color(0,0,0, 255));
-        data.setOutlineThickness(1.5);
+        data.setOutlineColor(sf::Color(0,0,0, 175));
+        data.setCharacterSize(32);
+        data.setOutlineThickness(1);
         while (window->isOpen())
         {  
             sf::Event event;
@@ -201,6 +207,8 @@ public:
             window->clear(sf::Color(200, 200, 200, 255));
 
             switch (screen_num) {
+            case -1: // case -1 indicates loading
+                displayLoadingScreen(); break;
             case 0: // case 0 indicates title screen
                 displayTitleScreen(); break;
             case 1: // case 1 indicates delays by day
@@ -252,6 +260,10 @@ public:
             
             window->display();
             
+            if (screen_num == -1) {
+                ds = loadDiscoverDelays();
+                screen_num = 0;
+            }
         }
 	}
 
@@ -266,9 +278,15 @@ public:
         }
     }
 
+
+    void displayLoadingScreen() {
+        data.setPosition(300, 300);
+        data.setString("Loading and sorting over 400,000 flights...\nPlease be patient!");
+        window->draw(data);
+        
+    }
     // Push any buttons you want to appear on the title screen
     void displayTitleScreen() {
-        activeButtons.push_back(&del_by_day);
         activeButtons.push_back(&del_by_month);
         activeButtons.push_back(&var_stats);
         activeButtons.push_back(&welc_banner);
@@ -313,14 +331,24 @@ public:
         activeButtons.push_back(&dec);
         activeButtons.push_back(&back);
         activeButtons.push_back(&gbackground);
+        activeButtons.push_back(&baddel);
 
         screen_num = 2;
     }
 
     void displayVariousStats() {
         activeButtons.push_back(&back);
-
+        data.setPosition(50, 50);
+        string s = "";
+        data.setCharacterSize(40);
+        data.setString(s + "Various Stats:\n" 
+                         + month_names[ds.worstMonth] + " was the worst month with " + to_string(ds.numDelaysByMonth[ds.worstMonth]) + " delays!\n"
+                         + month_names[ds.bestMonth] + " was the best month with " + to_string(ds.numDelaysByMonth[ds.bestMonth]) + " delays!\n"
+                         + "Our QuickSort algorithm took " + to_string(ds.quickTime) + " microseconds...\n"
+                         + "...while our MergeSort algorithm took " + to_string(ds.mergeTime) + " microseconds!");
         screen_num = 3;
+        window->draw(data);
+        data.setCharacterSize(32);
     }
 
     void displayDBMGraph() {
@@ -331,7 +359,9 @@ public:
 
         int graphMax = -1;
 
-        for (int x : ds.numDelaysByMonth)
+        int(&arr)[12] = (badDelayFlag) ? ds.numBadDelaysByMonth : ds.numDelaysByMonth;
+
+        for (int x : arr)
             if (x > graphMax)
                 graphMax = x;
         
@@ -355,11 +385,11 @@ public:
             if (activeMonths[i]) {
 #define GRAPH_X 550 - 18 * graphsToShow + (counter * 40)
                 month.setTexture(ddtm.GetTexture(months[i]));
-                month.setPosition(sf::Vector2f(GRAPH_X, 400 + 36));
+                month.setPosition(sf::Vector2f(GRAPH_X, 450 + 36));
                 window->draw(month);
-                for (int j = 0; j <= 4 * ds.numDelaysByMonth[i] / scalefactor; j++) {
+                for (int j = 0; j <= 4 * arr[i] / scalefactor; j++) {
                     // if the mouse is on a column. that's all this line is. seems scary, put please do not fret. that's all this line is.
-                    if (sf::Rect<int>(sf::Vector2i(GRAPH_X, 406 - 24 * ds.numDelaysByMonth[i] / scalefactor), sf::Vector2i(36, 72 + 24 * ds.numDelaysByMonth[i] / scalefactor)).contains(sf::Mouse::getPosition(*window))) { // DEAR GOD
+                    if (sf::Rect<int>(sf::Vector2i(GRAPH_X, 456 - 24 * arr[i] / scalefactor), sf::Vector2i(36, 72 + 24 * arr[i] / scalefactor)).contains(sf::Mouse::getPosition(*window))) { // DEAR GOD
                         spr.setTexture(ddtm.GetTexture("misc-graphdata-h"));
                         highlighted = true;
                     }
@@ -367,12 +397,15 @@ public:
                         spr.setTexture(ddtm.GetTexture("misc-graphdata"));
                         highlighted = false;
                     }
-                    spr.setPosition(sf::Vector2f(GRAPH_X, 400 - 6 * j));
+                    spr.setPosition(sf::Vector2f(GRAPH_X, 450 - 6 * j));
                     window->draw(spr);
                 }
                 if (highlighted) {
-                    data.setPosition(sf::Vector2f(180, 400 + 128));
-                    data.setString("Number of " + month_names[i] + " delays: " + to_string(ds.numDelaysByMonth[i]));
+                    data.setPosition(sf::Vector2f(180, 450 + 128));
+                    if (badDelayFlag)
+                        data.setString("Number of " + month_names[i] + " delays over 80 minutes: " + to_string(arr[i]));
+                    else
+                        data.setString("Number of " + month_names[i] + " delays: " + to_string(arr[i]));
                     window->draw(data);
                 }
 
@@ -398,5 +431,17 @@ void DD_Program::Button::click() {
     else if (name[4] == 'm' && name[5] == '-') {
         monthSwap(name);
         tex = tm.GetTexture(name);
+    }
+
+    else if (name == "but-baddel-0") {
+        tex = tm.GetTexture("but-baddel-1");
+        name = "but-baddel-1";
+        badDelayFlag = true;
+    }
+
+    else if (name == "but-baddel-1") {
+        tex = tm.GetTexture("but-baddel-0");
+        name = "but-baddel-0";
+        badDelayFlag = false;
     }
 }

@@ -6,8 +6,8 @@ struct DataSet {
     int worstMonth;
     int bestMonth;
 
-    string mergeTime;
-    string quickTime;
+    long int mergeTime;
+    long int quickTime;
 
     DataSet() {};
 };
