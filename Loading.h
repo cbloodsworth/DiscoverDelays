@@ -55,11 +55,14 @@ DataSet loadDiscoverDelays() {
     ds.quickTime = duration.count();
 
     int months[12];
+    int worst_months[12];
+    int best_months[12];
+
     for (int i = 0; i < 12; i++)
         months[i] = 0;
 
     for (int i = 0; i < 0.25 * rows; i++) {
-        months[flights[i].second - 1]++;
+        best_months[flights[i].second - 1]++;
     }
 
 
@@ -67,7 +70,7 @@ DataSet loadDiscoverDelays() {
         months[i] = 0;
 
     for (int i = rows - 1; i > 0.75 * rows; i--) {
-        months[flights[i].second - 1]++;
+        worst_months[flights[i].second - 1]++;
     }
 
     int worst = 0;
@@ -106,12 +109,12 @@ DataSet loadDiscoverDelays() {
     min = INT_MAX;
     int minindex = 0;
     for (int i = 0; i < 12; i++) {
-        if (max < ds.totalDelayByMonth[i]) {
-            max = ds.totalDelayByMonth[i];
+        if (max < worst_months[i]) {
+            max = worst_months[i];
             maxindex = i;
         }
-        if (min > ds.totalDelayByMonth[i]) {
-            min = ds.totalDelayByMonth[i];
+        if (min > best_months[i]) {
+            min = best_months[i];
             minindex = i;
         }
     }
