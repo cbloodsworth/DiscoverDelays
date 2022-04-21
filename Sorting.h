@@ -10,26 +10,17 @@
 using namespace std;
 
 int partition(pair<short int, short int> arr[], int lo, int hi) {
-    int up = lo;
-    int down = hi;
+    int up = lo - 1;
     int pivot = arr[lo].first;
 
-    while (up < down) {
-        for (int i = up; i < hi; i++) {
-            if (arr[up].first > pivot)
-                break;
-            up = up + 1;
-        }
-        for (int j = hi; j > lo; j--) {
-            if (arr[down].first <= pivot)
-                break;
-            down = down - 1;
-        }
-        if (up < down)
-            swap(arr[up], arr[down]);
+    for (int down = lo; down <= hi - 1; down++) {
+        if (arr[down].first < pivot) 
+            swap(arr[++up], arr[hi]);
+        
     }
-    swap(arr[lo], arr[down]);
-    return down;
+    
+    swap(arr[up + 1], arr[hi]);
+    return up + 1;
 }
 
 void quickSort(pair<short int, short int> arr[], int lo, int hi) {
