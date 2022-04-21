@@ -14,10 +14,10 @@ using namespace std;
 // used https://www.cplusplus.com/reference/ for reference
 // used https://www.geeksforgeeks.org/measure-execution-time-function-cpp/ for reference on displaying runtime
 int main() {
-    string fileName;
-    cin >> fileName;
+    string fileName = "updated_2008.csv";
+   /* cin >> fileName;*/
 
-    fstream inputFile; 
+    fstream inputFile;
     inputFile.open(fileName, ios::in);
     string line;
 
@@ -25,10 +25,10 @@ int main() {
     bool isMonth = true;
     int count = 0;
     int index = 0;
-    int rows = 150000;
-    pair<short int, short int> flights[rows];
+    int rows = 400000;
+    pair<short int, short int>* flights = new pair<short int, short int>[rows];
 
-    while(getline(inputFile, line)) {
+    while (getline(inputFile, line)) {
         if (count == rows)
             break;
         string temp;
@@ -49,8 +49,8 @@ int main() {
 
     cout << "Finished reading in flight data..." << endl;
 
-    pair<short int, short int> temp[count];
-    for (int i = 0; i < count; i++) 
+    pair<short int, short int>* temp = new pair<short int, short int>[count];
+    for (int i = 0; i < count; i++)
         temp[i] = flights[i];
 
     cout << "Performing merge sort..." << endl;
