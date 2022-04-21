@@ -12,8 +12,8 @@ using namespace std;
 // used https://www.cplusplus.com/reference/ for reference
 // vector<map<delay, month>>
 void merge(pair<short int, short int> flights[], int start, int middle, int end) {
-    pair<short int, short int> left[middle - start + 1];
-    pair<short int, short int> right[end - middle];
+    pair<short int, short int>* left = new pair<short int, short int>[middle - start + 1];
+    pair<short int, short int>* right = new pair<short int, short int>[end - middle];
 
     for (int i = 0; i < middle - start + 1; i++) {
         left[i] = flights[start + i];
@@ -26,7 +26,7 @@ void merge(pair<short int, short int> flights[], int start, int middle, int end)
     int j = 0;
     int k = start;
 
-    while(i < middle - start + 1 && j < end - middle) {
+    while (i < middle - start + 1 && j < end - middle) {
         if (left[i].first <= right[j].first) {
             flights[k] = left[i];
             i = i + 1;
@@ -48,6 +48,9 @@ void merge(pair<short int, short int> flights[], int start, int middle, int end)
         j = j + 1;
         k = k + 1;
     }
+
+    delete[] left;
+    delete[] right;
 }
 
 void mergeSort(pair<short int, short int> flights[], int start, int end) {
