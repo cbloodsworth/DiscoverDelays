@@ -9,5 +9,10 @@ struct DataSet {
     long int mergeTime;
     long int quickTime;
 
+    long int totalDelayByMonth[12];
+
+    int longestDelMonth;
+    int shortestDelMonth;
+
     DataSet() {};
 };

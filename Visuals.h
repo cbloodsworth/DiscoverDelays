@@ -345,7 +345,9 @@ public:
                          + month_names[ds.worstMonth] + " was the worst month with " + to_string(ds.numDelaysByMonth[ds.worstMonth]) + " delays!\n"
                          + month_names[ds.bestMonth] + " was the best month with " + to_string(ds.numDelaysByMonth[ds.bestMonth]) + " delays!\n"
                          + "Our QuickSort algorithm took " + to_string(ds.quickTime) + " microseconds...\n"
-                         + "...while our MergeSort algorithm took " + to_string(ds.mergeTime) + " microseconds!");
+                         + "...while our MergeSort algorithm took " + to_string(ds.mergeTime) + " microseconds!\n"
+                         + "The best month for short delays is " + month_names[ds.shortestDelMonth] + ".\n"
+                         + "The worst month with the longest delays is " + month_names[ds.longestDelMonth] + ".\n");
         screen_num = 3;
         window->draw(data);
         data.setCharacterSize(32);

@@ -95,10 +95,29 @@ DataSet loadDiscoverDelays() {
     int numDelays[12] = { 0 };
 
     for (int i = 0; i < rows; i++) {
+        ds.totalDelayByMonth[flights[i].second - 1] += flights[i].first;
         if (flights[i].first > 80) {
             numDelays[flights[i].second - 1]++;
         }
     }
+
+    int max = -1;
+    int maxindex = 0;
+    min = INT_MAX;
+    int minindex = 0;
+    for (int i = 0; i < 12; i++) {
+        if (max < ds.totalDelayByMonth[i]) {
+            max = ds.totalDelayByMonth[i];
+            maxindex = i;
+        }
+        if (min > ds.totalDelayByMonth[i]) {
+            min = ds.totalDelayByMonth[i];
+            minindex = i;
+        }
+    }
+
+    ds.longestDelMonth = maxindex;
+    ds.shortestDelMonth = minindex;
 
     for (int i = 0; i < 12; i++) {
         ds.numBadDelaysByMonth[i] = numDelays[i];
